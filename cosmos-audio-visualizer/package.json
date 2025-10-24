@@ -1,0 +1,22 @@
+{
+  "name": "cosmos-audio-visualizer",
+  "version": "1.0.0",
+  "description": "Interactive Three.js cosmos visualization powered by audio analysis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "audio",
+    "visualization",
+    "threejs",
+    "webgl",
+    "cosmos"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
