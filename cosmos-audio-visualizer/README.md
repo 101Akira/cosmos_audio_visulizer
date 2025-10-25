@@ -59,16 +59,41 @@ Start the server:
 npm start
 ```
 
-The server will start on `http://localhost:3000`
+The server will start on `http://localhost:50500` (or custom port via PORT env variable)
 
 Open your web browser and navigate to:
 ```
-http://localhost:3000
+http://localhost:50500
 ```
+
+## Supported Audio Formats
+
+The visualizer supports a wide range of audio formats through the Web Audio API:
+
+### Most Compatible (Recommended)
+- **MP3** (.mp3) - Works everywhere
+- **WAV** (.wav) - Uncompressed, high quality
+- **M4A** (.m4a) - Apple/iTunes format, excellent for iOS
+
+### High-Quality Formats
+- **FLAC** (.flac) - Lossless compression
+- **AIFF** (.aiff) - Apple lossless format
+- **APE** (.ape) - Monkey's Audio (lossless)
+
+### Modern Codecs
+- **OGG** (.ogg) - Ogg Vorbis, open format
+- **AAC** (.aac) - Advanced Audio Coding
+- **OPUS** (.opus) - Modern low-latency codec
+- **WebM** (.webm) - Web-optimized format
+
+### Other Formats
+- **WMA** (.wma) - Windows Media Audio
+
+**Note for iPhone/iOS users:** All formats are supported, but MP3, WAV, and M4A provide the best compatibility. The file picker will show all audio files regardless of extension.
 
 ## Usage
 
-1. **Upload Audio File**: Click "Upload Audio File" to select an audio file (MP3, WAV, etc.)
+1. **Upload Audio File**: Click "Upload Audio File" to select an audio file from your device
 2. **Use Microphone**: Click "Use Microphone" for real-time visualization of audio input
 3. **Play/Pause**: Control playback of uploaded audio files
 4. **Mouse Controls**:
@@ -173,7 +198,7 @@ Tested on:
 
 ## Port Configuration
 
-The default port is 3000. To use a different port, set the `PORT` environment variable:
+The default port is 50500. To use a different port, set the `PORT` environment variable:
 
 ```bash
 PORT=8080 npm start
@@ -187,8 +212,13 @@ PORT=8080 npm start
 
 ### No audio playback
 - Check browser console for errors
-- Ensure audio file format is supported (MP3, WAV, OGG)
+- Ensure audio file format is supported (see "Supported Audio Formats" section above)
 - Try clicking the page before playing (some browsers require user interaction)
+
+### Upload button only shows videos on iPhone
+- This is fixed! The file picker now explicitly supports all audio formats
+- If you still see issues, try using Safari instead of Chrome on iOS
+- MP3, WAV, and M4A files should always appear
 
 ### Performance issues
 - Lower the spawn rate slider
