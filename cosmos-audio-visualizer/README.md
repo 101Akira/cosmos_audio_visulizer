@@ -91,6 +91,34 @@ The visualizer supports a wide range of audio formats through the Web Audio API:
 
 **Note for iPhone/iOS users:** All formats are supported, but MP3, WAV, and M4A provide the best compatibility. The file picker will show all audio files regardless of extension.
 
+## File Size Limits
+
+Due to browser memory constraints, there are file size limits:
+
+| Device Type | Maximum File Size | Recommended |
+|-------------|------------------|-------------|
+| **Mobile** (iPhone/Android) | **20 MB** | 5-10 MB |
+| **Desktop** | **100 MB** | 20-50 MB |
+
+### Why the limits?
+- Mobile browsers have limited memory
+- WAV files are uncompressed (very large)
+- Loading large files can crash mobile browsers
+
+### File Size Comparison
+For a typical 3-minute song:
+- **MP3 (128kbps)**: ~3 MB ✅ **Best for mobile**
+- **MP3 (320kbps)**: ~7 MB ✅ Good quality
+- **M4A/AAC**: ~4 MB ✅ Apple format
+- **WAV**: ~30 MB ⚠️ **Too large for mobile!**
+- **FLAC**: ~20 MB ⚠️ At the mobile limit
+
+### Tips for Large Files
+1. **Convert WAV to MP3** - Reduces file size by 90%
+2. **Lower bitrate** - 128-192kbps is fine for visualization
+3. **Trim audio** - Use only the part you want to visualize
+4. **Use compression** - MP3, AAC, OGG are much smaller than WAV
+
 ## Usage
 
 1. **Upload Audio File**: Click "Upload Audio File" to select an audio file from your device
@@ -219,6 +247,12 @@ PORT=8080 npm start
 - This is fixed! The file picker now explicitly supports all audio formats
 - If you still see issues, try using Safari instead of Chrome on iOS
 - MP3, WAV, and M4A files should always appear
+
+### Large WAV files won't play on mobile
+- **This is expected behavior!** WAV files exceed the 20MB mobile limit
+- A 3-minute WAV file is typically 30MB (too large)
+- **Solution:** Convert to MP3 (will be ~3-7MB)
+- Desktop can handle larger files (up to 100MB)
 
 ### Performance issues
 - Lower the spawn rate slider

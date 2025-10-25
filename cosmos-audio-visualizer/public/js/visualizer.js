@@ -371,6 +371,17 @@ document.getElementById('uploadBtn').addEventListener('click', () => {
 document.getElementById('audioFile').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        // Check file size (20MB limit for mobile, 100MB for desktop)
+        const maxSize = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 20 * 1024 * 1024 : 100 * 1024 * 1024;
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+        if (file.size > maxSize) {
+            const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(0);
+            alert(`File too large: ${fileSizeMB}MB\n\nMaximum size on this device: ${maxSizeMB}MB\n\nTips:\n• Use MP3 instead of WAV (much smaller)\n• Compress/convert your audio file\n• Try a shorter clip`);
+            document.getElementById('status').textContent = `File too large: ${fileSizeMB}MB (max: ${maxSizeMB}MB)`;
+            return;
+        }
+
         stopAudio();
         isMicMode = false;
 
@@ -381,6 +392,13 @@ document.getElementById('audioFile').addEventListener('change', (e) => {
 
         audioElement = new Audio();
         audioElement.src = URL.createObjectURL(file);
+
+        // Add error handler for loading issues
+        audioElement.addEventListener('error', (err) => {
+            console.error('Audio loading error:', err);
+            document.getElementById('status').textContent = `Error loading ${file.name}`;
+            alert(`Failed to load audio file.\n\nPossible causes:\n• File corrupted or unsupported format\n• Not enough memory (try a smaller file)\n• Browser limitation\n\nTry converting to MP3 or using a smaller file.`);
+        });
 
         initAudioContext();
 
@@ -395,7 +413,7 @@ document.getElementById('audioFile').addEventListener('change', (e) => {
         splitter.connect(analyserRight, 1);
         analyser.connect(audioContext.destination);
 
-        document.getElementById('status').textContent = `Loaded: ${file.name}`;
+        document.getElementById('status').textContent = `Loaded: ${file.name} (${fileSizeMB}MB)`;
         document.getElementById('playPauseBtn').disabled = false;
         document.getElementById('stopBtn').disabled = false;
     }
