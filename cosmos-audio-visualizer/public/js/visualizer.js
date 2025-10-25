@@ -147,6 +147,15 @@ let settings = {
 // Microphone stream reference
 let micStream = null;
 
+// Spotify Configuration
+// IMPORTANT: Replace this with your own Spotify Client ID
+// Get one at: https://developer.spotify.com/dashboard
+const SPOTIFY_CLIENT_ID = 'YOUR_CLIENT_ID_HERE';
+const SPOTIFY_REDIRECT_URI = window.location.origin;
+let spotifyAccessToken = null;
+let spotifyPlayer = null;
+let spotifyDeviceId = null;
+
 // BPM Detection variables
 let bpmDetector = {
     peaks: [],
@@ -820,5 +829,354 @@ window.addEventListener('resize', () => {
 
 // Start animation
 animate();
+
+// ==================== UI INTERACTIONS ====================
+
+// Mobile menu toggle
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const mobileClose = document.getElementById('mobileClose');
+const controlsPanel = document.getElementById('controls');
+
+function toggleMobileMenu() {
+    controlsPanel.classList.toggle('mobile-hidden');
+    controlsPanel.classList.toggle('mobile-visible');
+}
+
+if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+}
+
+if (mobileClose) {
+    mobileClose.addEventListener('click', toggleMobileMenu);
+}
+
+// Close mobile menu when clicking outside on mobile
+if (window.innerWidth <= 768) {
+    document.addEventListener('click', (e) => {
+        if (controlsPanel.classList.contains('mobile-visible') &&
+            !controlsPanel.contains(e.target) &&
+            !mobileMenuToggle.contains(e.target)) {
+            toggleMobileMenu();
+        }
+    });
+}
+
+// Settings toggle button
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+
+settingsToggle.addEventListener('click', () => {
+    settingsPanel.classList.toggle('collapsed');
+
+    // Rotate the settings icon
+    if (settingsPanel.classList.contains('collapsed')) {
+        settingsToggle.style.transform = 'rotate(0deg)';
+    } else {
+        settingsToggle.style.transform = 'rotate(90deg)';
+    }
+});
+
+// Collapsible settings sections
+const settingsSectionHeaders = document.querySelectorAll('.settings-section-header');
+
+settingsSectionHeaders.forEach(header => {
+    header.addEventListener('click', () => {
+        const targetId = header.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const isExpanded = content.classList.contains('expanded');
+
+        // Toggle this section
+        if (isExpanded) {
+            content.classList.remove('expanded');
+            header.classList.remove('active');
+        } else {
+            content.classList.add('expanded');
+            header.classList.add('active');
+        }
+    });
+});
+
+// Open first section by default
+const firstSection = document.querySelector('.settings-section-header');
+if (firstSection) {
+    firstSection.click();
+}
+
+// ==================== SPOTIFY INTEGRATION ====================
+
+// Check for access token in URL (OAuth redirect)
+function checkSpotifyAuth() {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const token = params.get('access_token');
+
+    if (token) {
+        spotifyAccessToken = token;
+        localStorage.setItem('spotify_access_token', token);
+        window.location.hash = ''; // Clear the hash
+        initSpotifyPlayer();
+        document.getElementById('spotifyAuthBtn').innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Connected
+        `;
+        document.getElementById('spotifyAuthBtn').style.background = 'rgba(30, 215, 96, 0.2)';
+        document.getElementById('spotifyAuthBtn').style.borderColor = 'rgba(30, 215, 96, 0.4)';
+    } else {
+        // Check if we have a stored token
+        const storedToken = localStorage.getItem('spotify_access_token');
+        if (storedToken) {
+            spotifyAccessToken = storedToken;
+            initSpotifyPlayer();
+            document.getElementById('spotifyAuthBtn').innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Connected
+            `;
+            document.getElementById('spotifyAuthBtn').style.background = 'rgba(30, 215, 96, 0.2)';
+            document.getElementById('spotifyAuthBtn').style.borderColor = 'rgba(30, 215, 96, 0.4)';
+        }
+    }
+}
+
+// Spotify authentication
+document.getElementById('spotifyAuthBtn').addEventListener('click', () => {
+    if (spotifyAccessToken) {
+        // Already authenticated, disconnect
+        spotifyAccessToken = null;
+        localStorage.removeItem('spotify_access_token');
+        document.getElementById('spotifyAuthBtn').innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"></path>
+            </svg>
+            Connect
+        `;
+        document.getElementById('spotifyAuthBtn').style.background = '';
+        document.getElementById('spotifyAuthBtn').style.borderColor = '';
+        if (spotifyPlayer) {
+            spotifyPlayer.disconnect();
+            spotifyPlayer = null;
+        }
+        return;
+    }
+
+    if (SPOTIFY_CLIENT_ID === 'YOUR_CLIENT_ID_HERE') {
+        alert('Please set your Spotify Client ID in visualizer.js\n\n1. Go to https://developer.spotify.com/dashboard\n2. Create an app\n3. Add ' + window.location.origin + ' as redirect URI\n4. Copy the Client ID\n5. Replace YOUR_CLIENT_ID_HERE in /js/visualizer.js');
+        return;
+    }
+
+    const scopes = [
+        'streaming',
+        'user-read-email',
+        'user-read-private',
+        'user-read-playback-state',
+        'user-modify-playback-state'
+    ];
+
+    const authUrl = `https://accounts.spotify.com/authorize?` +
+        `client_id=${SPOTIFY_CLIENT_ID}` +
+        `&response_type=token` +
+        `&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}` +
+        `&scope=${encodeURIComponent(scopes.join(' '))}`;
+
+    window.location.href = authUrl;
+});
+
+// Initialize Spotify Web Playback SDK
+window.onSpotifyWebPlaybackSDKReady = () => {
+    if (spotifyAccessToken) {
+        initSpotifyPlayer();
+    }
+};
+
+function initSpotifyPlayer() {
+    if (!spotifyAccessToken || spotifyPlayer) return;
+
+    spotifyPlayer = new Spotify.Player({
+        name: 'Cosmos Audio Visualizer',
+        getOAuthToken: cb => { cb(spotifyAccessToken); },
+        volume: 0.8
+    });
+
+    // Error handling
+    spotifyPlayer.addListener('initialization_error', ({ message }) => {
+        console.error('Spotify initialization error:', message);
+    });
+    spotifyPlayer.addListener('authentication_error', ({ message }) => {
+        console.error('Spotify authentication error:', message);
+        localStorage.removeItem('spotify_access_token');
+        spotifyAccessToken = null;
+    });
+    spotifyPlayer.addListener('account_error', ({ message }) => {
+        console.error('Spotify account error:', message);
+        alert('Spotify Premium is required for full playback. Using preview mode instead.');
+    });
+
+    // Ready
+    spotifyPlayer.addListener('ready', ({ device_id }) => {
+        console.log('Spotify player ready with device ID:', device_id);
+        spotifyDeviceId = device_id;
+    });
+
+    // Player state changes
+    spotifyPlayer.addListener('player_state_changed', state => {
+        if (!state) return;
+
+        const track = state.track_window.current_track;
+        document.getElementById('status').textContent =
+            `Spotify: ${track.name} - ${track.artists[0].name}`;
+
+        isPlaying = !state.paused;
+        document.getElementById('playPauseBtn').textContent = isPlaying ? 'Pause' : 'Play';
+    });
+
+    spotifyPlayer.connect();
+}
+
+// Load Spotify track/playlist
+document.getElementById('spotifyBtn').addEventListener('click', async () => {
+    const url = document.getElementById('spotifyUrl').value.trim();
+    if (!url) {
+        alert('Please paste a Spotify URL');
+        return;
+    }
+
+    // Extract Spotify URI from URL
+    const trackMatch = url.match(/track\/([a-zA-Z0-9]+)/);
+    const playlistMatch = url.match(/playlist\/([a-zA-Z0-9]+)/);
+
+    if (trackMatch) {
+        const trackId = trackMatch[1];
+        await loadSpotifyTrack(trackId);
+    } else if (playlistMatch) {
+        const playlistId = playlistMatch[1];
+        await loadSpotifyPlaylist(playlistId);
+    } else {
+        alert('Invalid Spotify URL. Please paste a track or playlist link.');
+    }
+});
+
+// Load Spotify track
+async function loadSpotifyTrack(trackId) {
+    try {
+        // If authenticated with Premium, use Web Playback SDK
+        if (spotifyAccessToken && spotifyDeviceId) {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${spotifyAccessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    uris: [`spotify:track:${trackId}`]
+                })
+            });
+
+            if (response.ok) {
+                isPlaying = true;
+                document.getElementById('playPauseBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('status').textContent = 'Loading Spotify track...';
+
+                // Note: For full audio analysis, users need to route system audio
+                setTimeout(() => {
+                    alert('Spotify is now playing!\n\nNote: To visualize Spotify audio, you need to:\n1. Use a virtual audio cable (like VB-Cable)\n2. Route Spotify output to the cable\n3. Select the cable as input when clicking "Mic"');
+                }, 1000);
+            } else {
+                throw new Error('Failed to play track');
+            }
+        } else {
+            // Fallback: Try to get preview URL
+            const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+                headers: spotifyAccessToken ? {
+                    'Authorization': `Bearer ${spotifyAccessToken}`
+                } : {}
+            });
+
+            const data = await response.json();
+
+            if (data.preview_url) {
+                // Use 30-second preview
+                stopAudio();
+                isMicMode = false;
+
+                if (audioElement) {
+                    audioElement.pause();
+                    audioElement = null;
+                }
+
+                audioElement = new Audio();
+                audioElement.src = data.preview_url;
+                audioElement.crossOrigin = "anonymous";
+
+                initAudioContext();
+
+                if (source) {
+                    source.disconnect();
+                }
+
+                source = audioContext.createMediaElementSource(audioElement);
+                source.connect(analyser);
+                source.connect(splitter);
+                splitter.connect(analyserLeft, 0);
+                splitter.connect(analyserRight, 1);
+                analyser.connect(audioContext.destination);
+
+                audioElement.play();
+                isPlaying = true;
+
+                document.getElementById('status').textContent =
+                    `Spotify Preview: ${data.name} - ${data.artists[0].name} (30s)`;
+                document.getElementById('playPauseBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('playPauseBtn').innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    Pause
+                `;
+            } else {
+                alert('No preview available for this track.\n\nPlease:\n1. Connect to Spotify (requires Premium)\n2. Or choose a different track');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading Spotify track:', error);
+        document.getElementById('status').textContent = 'Error loading track';
+        alert('Error loading Spotify track. Please try again or check your connection.');
+    }
+}
+
+// Load Spotify playlist
+async function loadSpotifyPlaylist(playlistId) {
+    try {
+        const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+            headers: spotifyAccessToken ? {
+                'Authorization': `Bearer ${spotifyAccessToken}`
+            } : {}
+        });
+
+        const data = await response.json();
+
+        if (data.tracks && data.tracks.items.length > 0) {
+            // Play first track
+            const firstTrackId = data.tracks.items[0].track.id;
+            await loadSpotifyTrack(firstTrackId);
+
+            document.getElementById('status').textContent +=
+                ` (Playlist: ${data.name}, ${data.tracks.total} tracks)`;
+        } else {
+            alert('Playlist is empty or unavailable');
+        }
+    } catch (error) {
+        console.error('Error loading Spotify playlist:', error);
+        alert('Error loading playlist. Please check the URL and try again.');
+    }
+}
+
+// Check for Spotify auth on load
+checkSpotifyAuth();
 
 console.log('Cosmos Audio Visualizer loaded. Upload an audio file or use your microphone to begin!');

@@ -2,30 +2,114 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
     <title>Cosmos Audio Visualizer</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div id="canvas-container"></div>
 
-    <div id="controls">
-        <h1>Cosmos Audio Visualizer</h1>
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" title="Toggle Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
 
-        <div class="control-group">
+    <!-- Main Control Panel -->
+    <div id="controls" class="mobile-hidden">
+        <div class="controls-header">
+            <h1>Cosmos</h1>
+            <div class="header-buttons">
+                <button class="btn-icon" id="settingsToggle" title="Toggle Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m-6-6h6m6 0h6"></path>
+                    </svg>
+                </button>
+                <button class="btn-icon mobile-close" id="mobileClose" title="Close Menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Audio Source Controls -->
+        <div class="section">
+            <div class="section-title">Audio Source</div>
             <input type="file" id="audioFile" accept="audio/*">
-            <button class="btn" id="uploadBtn">Upload Audio File</button>
-            <button class="btn btn-secondary" id="micBtn">Use Microphone</button>
-            <button class="btn btn-secondary" id="micStopBtn" disabled style="display: none;">Stop Microphone</button>
+            <div class="btn-group-horizontal">
+                <button class="btn btn-primary" id="uploadBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m14-7l-5-5-5 5m5-5v12"></path>
+                    </svg>
+                    Upload
+                </button>
+                <button class="btn btn-secondary" id="micBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"></path>
+                    </svg>
+                    Mic
+                </button>
+                <button class="btn btn-secondary" id="micStopBtn" disabled style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="6" y="6" width="12" height="12"></rect>
+                    </svg>
+                    Stop
+                </button>
+            </div>
         </div>
 
-        <div class="control-group">
-            <button class="btn btn-secondary" id="playPauseBtn" disabled>Play</button>
-            <button class="btn btn-secondary" id="stopBtn" disabled>Stop</button>
+        <!-- Spotify Integration -->
+        <div class="section">
+            <div class="section-title">Spotify</div>
+            <input type="text" id="spotifyUrl" class="spotify-input" placeholder="Paste Spotify track/playlist URL...">
+            <div class="btn-group-horizontal" style="margin-top: 8px;">
+                <button class="btn btn-spotify" id="spotifyBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                    </svg>
+                    Load
+                </button>
+                <button class="btn btn-secondary" id="spotifyAuthBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"></path>
+                    </svg>
+                    Connect
+                </button>
+            </div>
         </div>
 
-        <div class="control-group">
-            <label>Visualization Mode</label>
+        <!-- Playback Controls -->
+        <div class="section">
+            <div class="section-title">Playback</div>
+            <div class="btn-group-horizontal">
+                <button class="btn btn-control" id="playPauseBtn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                    Play
+                </button>
+                <button class="btn btn-control" id="stopBtn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="6" width="12" height="12"></rect>
+                    </svg>
+                    Stop
+                </button>
+            </div>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="section">
+            <div class="section-title">Visualization Mode</div>
             <select id="modeSelect" class="mode-select">
                 <option value="classic">Classic - Frequency Bands</option>
                 <option value="bpm">BPM Sync - Beat Detection</option>
@@ -33,54 +117,80 @@
             </select>
         </div>
 
-        <div class="slider-group">
-            <label>
-                <span>Node Size</span>
-                <span id="nodeSizeValue">1.0</span>
-            </label>
-            <input type="range" id="nodeSize" min="0.5" max="3" step="0.1" value="1">
+        <!-- Settings Panel (Collapsible) -->
+        <div id="settingsPanel" class="settings-panel collapsed">
+            <!-- Visual Settings -->
+            <div class="settings-section">
+                <button class="settings-section-header" data-target="visualSettings">
+                    <span>Visual Settings</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div id="visualSettings" class="settings-content">
+                    <div class="slider-group">
+                        <label>
+                            <span>Node Size</span>
+                            <span id="nodeSizeValue">1.0</span>
+                        </label>
+                        <input type="range" id="nodeSize" min="0.5" max="3" step="0.1" value="1">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            <span>Spawn Rate</span>
+                            <span id="spawnRateValue">1.0</span>
+                        </label>
+                        <input type="range" id="spawnRate" min="0.1" max="3" step="0.1" value="1">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            <span>Spread</span>
+                            <span id="spreadValue">50</span>
+                        </label>
+                        <input type="range" id="spread" min="10" max="200" step="5" value="50">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            <span>Node Lifetime</span>
+                            <span id="lifetimeValue">2.0s</span>
+                        </label>
+                        <input type="range" id="lifetime" min="0" max="100" step="1" value="50">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Settings -->
+            <div class="settings-section">
+                <button class="settings-section-header" data-target="cameraSettings">
+                    <span>Camera Settings</span>
+                    <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div id="cameraSettings" class="settings-content">
+                    <div class="slider-group">
+                        <label>
+                            <span>Auto-Rotate Speed</span>
+                            <span id="cameraSpeedValue">0.0</span>
+                        </label>
+                        <input type="range" id="cameraSpeed" min="0" max="3" step="0.1" value="0">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            <span>Journey Speed</span>
+                            <span id="journeySpeedValue">0.5</span>
+                        </label>
+                        <input type="range" id="journeySpeed" min="0.1" max="3" step="0.1" value="0.5">
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="slider-group">
-            <label>
-                <span>Spawn Rate</span>
-                <span id="spawnRateValue">1.0</span>
-            </label>
-            <input type="range" id="spawnRate" min="0.1" max="3" step="0.1" value="1">
-        </div>
-
-        <div class="slider-group">
-            <label>
-                <span>Spread</span>
-                <span id="spreadValue">50</span>
-            </label>
-            <input type="range" id="spread" min="10" max="200" step="5" value="50">
-        </div>
-
-        <div class="slider-group">
-            <label>
-                <span>Auto-Rotate Speed</span>
-                <span id="cameraSpeedValue">0.0</span>
-            </label>
-            <input type="range" id="cameraSpeed" min="0" max="3" step="0.1" value="0">
-        </div>
-
-        <div class="slider-group">
-            <label>
-                <span>Node Lifetime</span>
-                <span id="lifetimeValue">2.0s</span>
-            </label>
-            <input type="range" id="lifetime" min="0" max="100" step="1" value="50">
-        </div>
-
-        <div class="slider-group">
-            <label>
-                <span>Journey Speed</span>
-                <span id="journeySpeedValue">0.5</span>
-            </label>
-            <input type="range" id="journeySpeed" min="0.1" max="3" step="0.1" value="0.5">
-        </div>
-
+        <!-- Status -->
         <div id="status">Waiting for audio...</div>
     </div>
 
@@ -93,6 +203,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script src="/js/visualizer.js"></script>
 </body>
 </html>
